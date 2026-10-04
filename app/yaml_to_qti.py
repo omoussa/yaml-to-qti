@@ -73,13 +73,14 @@ def standard_question_start(section, question_type, question_obj):
     #  each.
     # Maybe start with using standard Markdown syntax?
 
+    figure = question_obj.get("figure")
+    
     #old code
     #if "figure" in question_obj and question_obj["figure"]:
     #    figure_path_parts = question_obj["figure"].split("/")
     #    filename = figure_path_parts[-1]
     #    mattext.text += f"<img src='$IMS-CC-FILEBASE$/media/{filename}' alt='Figure' />"
 
-    #    figure = question_obj.get("figure")
     
     #This reads the new figure_alt field in the yaml and safely handles quotes and ampersands. 
     #Missing or null values fall back to "Figure"; 
