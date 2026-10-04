@@ -16,6 +16,7 @@ from app.numeric_qti import convert_numerical_to_qti
 from app.ordering_qti import convert_ordering_to_qti
 from app.string_utils import sanitize_text_for_import
 from app.true_false_qti import convert_true_false_to_qti
+from html import escape
 
 
 def create_feedback_tree(element, ident, text):
@@ -71,11 +72,40 @@ def standard_question_start(section, question_type, question_obj):
     # Ideally this would support multiple images, and potentially also sizing rules for
     #  each.
     # Maybe start with using standard Markdown syntax?
-    if "figure" in question_obj and question_obj["figure"]:
-        figure_path_parts = question_obj["figure"].split("/")
-        filename = figure_path_parts[-1]
-        mattext.text += f"<img src='$IMS-CC-FILEBASE$/media/{filename}' alt='Figure' />"
 
+    #old code
+    #if "figure" in question_obj and question_obj["figure"]:
+    #    figure_path_parts = question_obj["figure"].split("/")
+    #    filename = figure_path_parts[-1]
+    #    mattext.text += f"<img src='$IMS-CC-FILEBASE$/media/{filename}' alt='Figure' />"
+
+    #    figure = question_obj.get("figure")
+    
+    #This reads the new figure_alt field in the yaml and safely handles quotes and ampersands. 
+    #Missing or null values fall back to "Figure"; 
+    #an explicit empty string remains empty for decorative images.
+    
+    if figure:
+        filename = figure.rsplit("/", 1)[-1]
+
+        alt_text = question_obj.get("figure_alt")
+        if alt_text is None:
+            alt_text = "Figure"
+        elif not isinstance(alt_text, str):
+            raise ValueError(
+                f"Question {question_obj['id']}: "
+                "figure_alt must be a string or null."
+            )
+
+        src = escape(
+            f"$IMS-CC-FILEBASE$/media/{filename}",
+            quote=True,
+        )
+        alt = escape(alt_text, quote=True)
+
+        mattext.text += f'<img src="{src}" alt="{alt}" />'
+
+    
     return xml_element
 
 
