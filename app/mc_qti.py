@@ -54,6 +54,56 @@ def convert_multiple_choice_to_qti(item, question, shuffle_answers=False):
         {"varname": "SCORE", "vartype": "Decimal", "minvalue": "0", "maxvalue": "100"},
     )
 
+        # Link question-level general feedback first.
+    question_feedback = question.get("feedback") or {}
+    if question_feedback.get("general"):
+        condition = SubElement(
+            resprocessing, "respcondition", {"continue": "Yes"}
+        )
+        SubElement(SubElement(condition, "conditionvar"), "other")
+        SubElement(
+            condition,
+            "displayfeedback",
+            feedbacktype="Response",
+            linkrefid="general_fb",
+        )
+
+    # Link optional feedback to each answer.
+    for idx, answer in enumerate(question["answers"], start=1):
+        feedback_text = answer["answer"].get("feedback")
+        if feedback_text is None:
+            continue
+        if not isinstance(feedback_text, str):
+            raise ValueError(
+                f"Question {question['id']}, answer {idx}: "
+                "feedback must be a string or null."
+            )
+        if not feedback_text.strip():
+            continue
+
+        choice_id = f"CHOICE_{idx}"
+        feedback_id = f"{choice_id}_fb"
+
+        condition = SubElement(
+            resprocessing, "respcondition", {"continue": "Yes"}
+        )
+        conditionvar = SubElement(condition, "conditionvar")
+        SubElement(
+            conditionvar, "varequal", respident=response_id
+        ).text = choice_id
+        SubElement(
+            condition,
+            "displayfeedback",
+            feedbacktype="Response",
+            linkrefid=feedback_id,
+        )
+
+        itemfeedback = SubElement(item, "itemfeedback", ident=feedback_id)
+        flowmat = SubElement(itemfeedback, "flow_mat")
+        material = SubElement(flowmat, "material")
+        mattext = SubElement(material, "mattext", texttype="text/html")
+        mattext.text = sanitize_text_for_import(feedback_text)
+        
     if points_per:
         for idx, answer in enumerate(question["answers"], start=1):
             answer_props = {"continue": "No"}
