@@ -62,7 +62,7 @@ def standard_question_start(section, question_type, question_obj):
         return xml_element
 
     material = SubElement(presentation, "material")
-    mattext = SubElement(material, "mattext", texttype="text/plain")
+    mattext = SubElement(material, "mattext", texttype="text/html")
     mattext.text = sanitize_text_for_import(question_obj["text"])
 
     # Add figure if available and not empty
